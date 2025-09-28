@@ -8,4 +8,4 @@ omegaconf
 tensorboard
 wandb
 tqdm
-museval=
+museval
