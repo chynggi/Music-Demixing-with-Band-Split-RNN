@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 from torch.optim import Optimizer, lr_scheduler
 import typing as tp
 from omegaconf import DictConfig
+from pytorch_lightning.utilities.grad_norm import grad_norm
 
 
 class PLModel(pl.LightningModule):
@@ -146,7 +147,7 @@ class PLModel(pl.LightningModule):
     def on_before_optimizer_step(
             self, optimizer, optimizer_idx
     ):
-        norms = pl.utilities.grad_norm(self, norm_type=2)
+        norms = grad_norm(self, norm_type=2)
         norms = dict(filter(lambda elem: '_total' in elem[0], norms.items()))
         self.log_dict(norms)
 

@@ -24,6 +24,7 @@ import traceback
 import utils
 
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 log = logging.getLogger(__name__)
 
@@ -231,8 +232,17 @@ def train(
         hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
         shutil.rmtree(hydra_cfg['runtime']['output_dir'])
 
-    # Print path to best checkpoint
-    log.info(f"Best checkpoint path:\n{trainer.checkpoint_callback.best_model_path}")
+    checkpoint_callbacks = [
+        cb for cb in trainer.callbacks if isinstance(cb, ModelCheckpoint)
+    ]
+    if checkpoint_callbacks:
+        for cb in checkpoint_callbacks:
+            monitor_name = getattr(cb, 'monitor', None)
+            best_path = getattr(cb, 'best_model_path', None)
+            extra = f" ({monitor_name})" if monitor_name else ""
+            log.info(f"Best checkpoint{extra}: {best_path if best_path else 'not available'}")
+    else:
+        log.info("No ModelCheckpoint callbacks were configured.")
 
     # Return metric score for hyperparameter optimization
     optimized_metric = cfg.get("optimized_metric")
